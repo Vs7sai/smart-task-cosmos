@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Briefcase, User, ShoppingCart, Heart, AlertCircle, ArrowUp, ArrowDown } from "lucide-react";
+import { Plus, Briefcase, User, ShoppingCart, Heart, AlertCircle, ArrowUp, ArrowDown, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Task } from "@/types/task";
@@ -15,6 +15,8 @@ export const AddTaskInput = ({ onAdd }: AddTaskInputProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<Task["category"] | null>(null);
   const [selectedPriority, setSelectedPriority] = useState<Task["priority"] | null>(null);
+  const [lastCategory, setLastCategory] = useState<Task["category"]>("personal");
+  const [lastPriority, setLastPriority] = useState<Task["priority"]>("low");
 
   const detectCategory = (text: string): Task["category"] => {
     const lowerText = text.toLowerCase();
@@ -57,10 +59,32 @@ export const AddTaskInput = ({ onAdd }: AddTaskInputProps) => {
       priority,
     });
 
+    // Remember last selections for next task
+    setLastCategory(category);
+    setLastPriority(priority);
+
     setTitle("");
     setIsExpanded(false);
     setSelectedCategory(null);
     setSelectedPriority(null);
+  };
+
+  const handleClose = () => {
+    setTitle("");
+    setIsExpanded(false);
+    setSelectedCategory(null);
+    setSelectedPriority(null);
+  };
+
+  const handleFocus = () => {
+    setIsExpanded(true);
+    // Set defaults to last used values if nothing is selected
+    if (!selectedCategory) {
+      setSelectedCategory(lastCategory);
+    }
+    if (!selectedPriority) {
+      setSelectedPriority(lastPriority);
+    }
   };
 
   const categories = [
@@ -84,14 +108,25 @@ export const AddTaskInput = ({ onAdd }: AddTaskInputProps) => {
   return (
     <form onSubmit={handleSubmit} className="w-full">
       <div className="bg-card rounded-2xl shadow-elegant p-4 transition-all duration-300">
-        <div className="flex gap-3">
+        <div className="flex gap-3 items-start">
           <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            onFocus={() => setIsExpanded(true)}
+            onFocus={handleFocus}
             placeholder="Add a new task..."
             className="flex-1 border-0 bg-muted/50 focus-visible:ring-2 focus-visible:ring-primary rounded-xl text-base"
           />
+          {isExpanded && (
+            <Button
+              type="button"
+              onClick={handleClose}
+              variant="ghost"
+              size="icon"
+              className="rounded-xl hover:bg-destructive/10 hover:text-destructive transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          )}
           <Button
             type="submit"
             disabled={!title.trim()}
