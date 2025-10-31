@@ -4,16 +4,19 @@ import { TaskItem } from "@/components/TaskItem";
 import { AddTaskInput } from "@/components/AddTaskInput";
 import { ProgressWheel } from "@/components/ProgressWheel";
 import { CategoryFilter } from "@/components/CategoryFilter";
-import { Sparkles, Trophy } from "lucide-react";
+import { Sparkles, Trophy, ChevronDown, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Preferences } from "@capacitor/preferences";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { format, isToday, isYesterday, startOfDay } from "date-fns";
 
 const STORAGE_KEY = "flowstate_tasks";
 
 const Index = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<Task["category"] | "all">("all");
+  const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set(["today"]));
   const { toast } = useToast();
 
   // Load tasks from storage
@@ -95,6 +98,56 @@ const Index = () => {
     (task) => selectedCategory === "all" || task.category === selectedCategory
   );
 
+  // Group tasks by date
+  const groupTasksByDate = (tasks: Task[]) => {
+    const groups: Record<string, Task[]> = {};
+    
+    tasks.forEach((task) => {
+      const taskDate = startOfDay(task.createdAt);
+      const dateKey = taskDate.getTime().toString();
+      
+      if (!groups[dateKey]) {
+        groups[dateKey] = [];
+      }
+      groups[dateKey].push(task);
+    });
+
+    // Sort groups by date (newest first)
+    return Object.entries(groups)
+      .sort(([a], [b]) => parseInt(b) - parseInt(a))
+      .map(([dateKey, tasks]) => ({
+        dateKey,
+        date: new Date(parseInt(dateKey)),
+        tasks: tasks.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()),
+      }));
+  };
+
+  const groupedTasks = groupTasksByDate(filteredTasks);
+
+  const getDateLabel = (date: Date) => {
+    if (isToday(date)) return "today";
+    if (isYesterday(date)) return "yesterday";
+    return format(date, "MMM d, yyyy");
+  };
+
+  const getDateDisplay = (date: Date) => {
+    if (isToday(date)) return "Today";
+    if (isYesterday(date)) return "Yesterday";
+    return format(date, "EEEE, MMMM d, yyyy");
+  };
+
+  const toggleDateExpansion = (dateLabel: string) => {
+    setExpandedDates((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(dateLabel)) {
+        newSet.delete(dateLabel);
+      } else {
+        newSet.add(dateLabel);
+      }
+      return newSet;
+    });
+  };
+
   const taskCounts = tasks.reduce((acc, task) => {
     acc[task.category] = (acc[task.category] || 0) + 1;
     return acc;
@@ -153,9 +206,9 @@ const Index = () => {
           />
         </div>
 
-        {/* Task List */}
-        <div className="space-y-3 animate-fade-in" style={{ animationDelay: "200ms" }}>
-          {filteredTasks.length === 0 ? (
+        {/* Task List Grouped by Date */}
+        <div className="space-y-4 animate-fade-in" style={{ animationDelay: "200ms" }}>
+          {groupedTasks.length === 0 ? (
             <div className="text-center py-16">
               <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-primary/10 flex items-center justify-center animate-pulse-glow">
                 <Sparkles className="h-12 w-12 text-primary" />
@@ -166,19 +219,50 @@ const Index = () => {
               </p>
             </div>
           ) : (
-            filteredTasks.map((task, index) => (
-              <div
-                key={task.id}
-                className="animate-slide-down"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                <TaskItem
-                  task={task}
-                  onToggle={toggleTask}
-                  onDelete={deleteTask}
-                />
-              </div>
-            ))
+            groupedTasks.map(({ dateKey, date, tasks: dateTasks }) => {
+              const dateLabel = getDateLabel(date);
+              const isExpanded = expandedDates.has(dateLabel);
+              const completedCount = dateTasks.filter(t => t.completed).length;
+
+              return (
+                <Collapsible
+                  key={dateKey}
+                  open={isExpanded}
+                  onOpenChange={() => toggleDateExpansion(dateLabel)}
+                  className="bg-card rounded-2xl shadow-sm border border-border/50 overflow-hidden"
+                >
+                  <CollapsibleTrigger className="w-full px-4 py-3 flex items-center justify-between hover:bg-accent/50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <div className="text-left">
+                        <h3 className="font-semibold text-sm">{getDateDisplay(date)}</h3>
+                        <p className="text-xs text-muted-foreground">
+                          {completedCount}/{dateTasks.length} completed
+                        </p>
+                      </div>
+                    </div>
+                    <ChevronDown
+                      className={`h-5 w-5 text-muted-foreground transition-transform duration-200 ${
+                        isExpanded ? "rotate-180" : ""
+                      }`}
+                    />
+                  </CollapsibleTrigger>
+                  
+                  <CollapsibleContent>
+                    <div className="px-2 pb-2 space-y-2">
+                      {dateTasks.map((task) => (
+                        <TaskItem
+                          key={task.id}
+                          task={task}
+                          onToggle={toggleTask}
+                          onDelete={deleteTask}
+                        />
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              );
+            })
           )}
         </div>
       </div>
