@@ -133,7 +133,7 @@ const Index = () => {
   const getDateDisplay = (date: Date) => {
     if (isToday(date)) return "Today";
     if (isYesterday(date)) return "Yesterday";
-    return format(date, "EEEE, MMMM d, yyyy");
+    return format(date, "MMM d, EEEE");
   };
 
   const toggleDateExpansion = (dateLabel: string) => {
@@ -163,14 +163,14 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-subtle pb-20">
       {/* Header */}
-      <div className="bg-gradient-primary text-white px-6 pt-12 pb-8 rounded-b-[2rem] shadow-elegant">
+      <div className="bg-gradient-to-br from-primary via-primary-hover to-primary-glow px-6 pt-12 pb-8 rounded-b-[2rem] shadow-elegant">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold mb-1 flex items-center gap-2">
+            <h1 className="text-3xl font-bold mb-1 flex items-center gap-2 text-white">
               <Sparkles className="h-7 w-7" />
               FlowState
             </h1>
-            <p className="text-white/80 text-sm">Your ultimate productivity companion</p>
+            <p className="text-white/90 text-sm">Your ultimate productivity companion</p>
           </div>
           
           {completedToday > 0 && (
