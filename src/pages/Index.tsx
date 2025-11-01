@@ -103,14 +103,14 @@ const Index = () => {
     });
   };
 
-  const setReminder = (taskId: string, reminderTime: Date | null) => {
+  const setReminder = (taskId: string, reminderTime: Date | null, recurring: 'none' | 'daily' = 'none') => {
     setTasks((prev) =>
       prev.map((task) =>
         task.id === taskId
           ? {
               ...task,
               reminder: reminderTime
-                ? { time: reminderTime, enabled: true }
+                ? { time: reminderTime, enabled: true, recurring }
                 : undefined,
             }
           : task
@@ -118,9 +118,10 @@ const Index = () => {
     );
     
     if (reminderTime) {
+      const recurringText = recurring === 'daily' ? ' (repeats daily)' : '';
       toast({
         title: "Reminder set! ⏰",
-        description: format(reminderTime, "MMM d 'at' h:mm a"),
+        description: format(reminderTime, "MMM d 'at' h:mm a") + recurringText,
       });
       
       // Request notification permission

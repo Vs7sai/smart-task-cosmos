@@ -9,6 +9,7 @@ export interface Task {
   reminder?: {
     time: Date;
     enabled: boolean;
+    recurring?: 'none' | 'daily';
   };
 }
 

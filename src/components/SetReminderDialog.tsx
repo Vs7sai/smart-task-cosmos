@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Bell, X } from "lucide-react";
 import { Task } from "@/types/task";
 
@@ -10,17 +11,18 @@ interface SetReminderDialogProps {
   task: Task;
   open: boolean;
   onClose: () => void;
-  onSetReminder: (taskId: string, reminderTime: Date | null) => void;
+  onSetReminder: (taskId: string, reminderTime: Date | null, recurring?: 'none' | 'daily') => void;
 }
 
 export const SetReminderDialog = ({ task, open, onClose, onSetReminder }: SetReminderDialogProps) => {
   const [reminderDate, setReminderDate] = useState(
     task.reminder?.time ? new Date(task.reminder.time).toISOString().slice(0, 16) : ""
   );
+  const [recurring, setRecurring] = useState<'none' | 'daily'>(task.reminder?.recurring || 'none');
 
   const handleSave = () => {
     if (reminderDate) {
-      onSetReminder(task.id, new Date(reminderDate));
+      onSetReminder(task.id, new Date(reminderDate), recurring);
     }
     onClose();
   };
@@ -55,6 +57,19 @@ export const SetReminderDialog = ({ task, open, onClose, onSetReminder }: SetRem
               onChange={(e) => setReminderDate(e.target.value)}
               min={new Date().toISOString().slice(0, 16)}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="recurring">Repeat</Label>
+            <Select value={recurring} onValueChange={(value) => setRecurring(value as 'none' | 'daily')}>
+              <SelectTrigger id="recurring">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Don't repeat</SelectItem>
+                <SelectItem value="daily">Every day</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 

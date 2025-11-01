@@ -1,5 +1,5 @@
 import { Task } from "@/types/task";
-import { Bell, Calendar, Clock, Trash2 } from "lucide-react";
+import { Bell, Calendar, Clock, Trash2, Repeat } from "lucide-react";
 import { format, isBefore, isToday, isTomorrow } from "date-fns";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
@@ -86,6 +86,12 @@ export const RemindersSection = ({ tasks, onDeleteReminder, onEditReminder }: Re
                         <Clock className="h-3 w-3" />
                         <span>{format(reminderTime, "h:mm a")}</span>
                       </div>
+                      {task.reminder?.recurring === 'daily' && (
+                        <Badge variant="outline" className="text-xs">
+                          <Repeat className="h-3 w-3 mr-1" />
+                          Daily
+                        </Badge>
+                      )}
                       {overdue && (
                         <Badge variant="destructive" className="text-xs">
                           Overdue

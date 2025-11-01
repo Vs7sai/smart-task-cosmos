@@ -1,10 +1,13 @@
 import { useState } from "react";
-import { Plus, Briefcase, User, ShoppingCart, Heart, AlertCircle, ArrowUp, ArrowDown, X } from "lucide-react";
+import { Plus, Briefcase, User, ShoppingCart, Heart, AlertCircle, ArrowUp, ArrowDown, X, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Task } from "@/types/task";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { cn } from "@/lib/utils";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface AddTaskInputProps {
   onAdd: (task: Omit<Task, "id" | "createdAt">) => void;
@@ -17,6 +20,8 @@ export const AddTaskInput = ({ onAdd }: AddTaskInputProps) => {
   const [selectedPriority, setSelectedPriority] = useState<Task["priority"] | null>(null);
   const [lastCategory, setLastCategory] = useState<Task["category"]>("personal");
   const [lastPriority, setLastPriority] = useState<Task["priority"]>("low");
+  const [reminderTime, setReminderTime] = useState("");
+  const [reminderRecurring, setReminderRecurring] = useState<'none' | 'daily'>('none');
 
   const detectCategory = (text: string): Task["category"] => {
     const lowerText = text.toLowerCase();
@@ -57,6 +62,11 @@ export const AddTaskInput = ({ onAdd }: AddTaskInputProps) => {
       completed: false,
       category,
       priority,
+      reminder: reminderTime ? {
+        time: new Date(reminderTime),
+        enabled: true,
+        recurring: reminderRecurring
+      } : undefined
     });
 
     // Remember last selections for next task
@@ -67,6 +77,8 @@ export const AddTaskInput = ({ onAdd }: AddTaskInputProps) => {
     setIsExpanded(false);
     setSelectedCategory(null);
     setSelectedPriority(null);
+    setReminderTime("");
+    setReminderRecurring('none');
   };
 
   const handleClose = () => {
@@ -74,6 +86,8 @@ export const AddTaskInput = ({ onAdd }: AddTaskInputProps) => {
     setIsExpanded(false);
     setSelectedCategory(null);
     setSelectedPriority(null);
+    setReminderTime("");
+    setReminderRecurring('none');
   };
 
   const handleFocus = () => {
@@ -102,8 +116,6 @@ export const AddTaskInput = ({ onAdd }: AddTaskInputProps) => {
 
   const detectedCategory = detectCategory(title);
   const detectedPriority = detectPriority(title);
-  const finalCategory = selectedCategory || detectedCategory;
-  const finalPriority = selectedPriority || detectedPriority;
 
   return (
     <form onSubmit={handleSubmit} className="w-full">
@@ -117,15 +129,72 @@ export const AddTaskInput = ({ onAdd }: AddTaskInputProps) => {
             className="flex-1 border-0 bg-muted/50 focus-visible:ring-2 focus-visible:ring-primary rounded-xl text-base"
           />
           {isExpanded && (
-            <Button
-              type="button"
-              onClick={handleClose}
-              variant="ghost"
-              size="icon"
-              className="rounded-xl hover:bg-destructive/10 hover:text-destructive transition-colors"
-            >
-              <X className="h-5 w-5" />
-            </Button>
+            <>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className={cn(
+                      "rounded-xl transition-colors",
+                      reminderTime ? "text-primary hover:bg-primary/10" : "hover:bg-muted"
+                    )}
+                  >
+                    <Bell className={cn("h-5 w-5", reminderTime && "fill-current")} />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80" align="end">
+                  <div className="space-y-4">
+                    <h4 className="font-medium">Set Reminder</h4>
+                    <div className="space-y-2">
+                      <Label htmlFor="reminder-time">Time</Label>
+                      <Input
+                        id="reminder-time"
+                        type="datetime-local"
+                        value={reminderTime}
+                        onChange={(e) => setReminderTime(e.target.value)}
+                        min={new Date().toISOString().slice(0, 16)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="reminder-recurring">Repeat</Label>
+                      <Select value={reminderRecurring} onValueChange={(value) => setReminderRecurring(value as 'none' | 'daily')}>
+                        <SelectTrigger id="reminder-recurring">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Don't repeat</SelectItem>
+                          <SelectItem value="daily">Every day</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {reminderTime && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => {
+                          setReminderTime("");
+                          setReminderRecurring('none');
+                        }}
+                        className="w-full"
+                      >
+                        Clear Reminder
+                      </Button>
+                    )}
+                  </div>
+                </PopoverContent>
+              </Popover>
+              <Button
+                type="button"
+                onClick={handleClose}
+                variant="ghost"
+                size="icon"
+                className="rounded-xl hover:bg-destructive/10 hover:text-destructive transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </>
           )}
           <Button
             type="submit"
