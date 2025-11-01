@@ -33,10 +33,10 @@ export const ProgressWheel = ({ tasks, category }: ProgressWheelProps) => {
           cx="60"
           cy="60"
           r="54"
-          stroke="currentColor"
+          stroke="white"
           strokeWidth="8"
           fill="none"
-          className="text-muted opacity-20"
+          className="opacity-30"
         />
         
         {/* Progress circle */}
@@ -55,31 +55,17 @@ export const ProgressWheel = ({ tasks, category }: ProgressWheelProps) => {
         
         <defs>
           <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop
-              offset="0%"
-              className={cn(
-                "transition-all",
-                category ? `text-${category}` : "text-primary"
-              )}
-              stopColor="currentColor"
-            />
-            <stop
-              offset="100%"
-              className={cn(
-                "transition-all",
-                category ? `text-${category}` : "text-primary-glow"
-              )}
-              stopColor="currentColor"
-            />
+            <stop offset="0%" stopColor="#ffffff" />
+            <stop offset="100%" stopColor="#f0f0f0" />
           </linearGradient>
         </defs>
       </svg>
       
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+        <span className="text-3xl font-bold text-white">
           {Math.round(percentage)}%
         </span>
-        <span className="text-xs text-muted-foreground mt-1">
+        <span className="text-xs text-white/80 mt-1">
           {completed}/{total}
         </span>
       </div>
