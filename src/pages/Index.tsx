@@ -4,11 +4,14 @@ import { TaskItem } from "@/components/TaskItem";
 import { AddTaskInput } from "@/components/AddTaskInput";
 import { ProgressWheel } from "@/components/ProgressWheel";
 import { CategoryFilter } from "@/components/CategoryFilter";
-import { Sparkles, Trophy, ChevronDown, Calendar } from "lucide-react";
+import { RemindersSection } from "@/components/RemindersSection";
+import { SetReminderDialog } from "@/components/SetReminderDialog";
+import { Sparkles, Trophy, ChevronDown, Calendar, Bell } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Preferences } from "@capacitor/preferences";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format, isToday, isYesterday, startOfDay } from "date-fns";
 
 const STORAGE_KEY = "flowstate_tasks";
@@ -17,6 +20,8 @@ const Index = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<Task["category"] | "all">("all");
   const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set(["today"]));
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [isReminderDialogOpen, setIsReminderDialogOpen] = useState(false);
   const { toast } = useToast();
 
   // Load tasks from storage
@@ -29,6 +34,10 @@ const Index = () => {
           ...t,
           createdAt: new Date(t.createdAt),
           completedAt: t.completedAt ? new Date(t.completedAt) : undefined,
+          reminder: t.reminder ? {
+            ...t.reminder,
+            time: new Date(t.reminder.time),
+          } : undefined,
         })));
       }
     };
@@ -92,6 +101,47 @@ const Index = () => {
       title: "Task deleted",
       variant: "destructive",
     });
+  };
+
+  const setReminder = (taskId: string, reminderTime: Date | null) => {
+    setTasks((prev) =>
+      prev.map((task) =>
+        task.id === taskId
+          ? {
+              ...task,
+              reminder: reminderTime
+                ? { time: reminderTime, enabled: true }
+                : undefined,
+            }
+          : task
+      )
+    );
+    
+    if (reminderTime) {
+      toast({
+        title: "Reminder set! ⏰",
+        description: format(reminderTime, "MMM d 'at' h:mm a"),
+      });
+      
+      // Request notification permission
+      if ("Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission();
+      }
+    } else {
+      toast({
+        title: "Reminder removed",
+        description: "Reminder has been deleted",
+      });
+    }
+  };
+
+  const handleSetReminder = (task: Task) => {
+    setSelectedTask(task);
+    setIsReminderDialogOpen(true);
+  };
+
+  const deleteReminder = (taskId: string) => {
+    setReminder(taskId, null);
   };
 
   const filteredTasks = tasks.filter(
@@ -197,75 +247,113 @@ const Index = () => {
           <AddTaskInput onAdd={addTask} />
         </div>
 
-        {/* Category Filter */}
-        <div className="animate-fade-in" style={{ animationDelay: "100ms" }}>
-          <CategoryFilter
-            selected={selectedCategory}
-            onSelect={setSelectedCategory}
-            taskCounts={taskCounts}
-          />
-        </div>
+        {/* Tabs for Tasks and Reminders */}
+        <Tabs defaultValue="tasks" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="tasks" className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4" />
+              Tasks
+            </TabsTrigger>
+            <TabsTrigger value="reminders" className="flex items-center gap-2">
+              <Bell className="h-4 w-4" />
+              Reminders
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Task List Grouped by Date */}
-        <div className="space-y-4 animate-fade-in" style={{ animationDelay: "200ms" }}>
-          {groupedTasks.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-primary/10 flex items-center justify-center animate-pulse-glow">
-                <Sparkles className="h-12 w-12 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">No tasks yet</h3>
-              <p className="text-muted-foreground">
-                Add your first task to get started!
-              </p>
+          <TabsContent value="tasks" className="space-y-6">
+            {/* Category Filter */}
+            <div className="animate-fade-in">
+              <CategoryFilter
+                selected={selectedCategory}
+                onSelect={setSelectedCategory}
+                taskCounts={taskCounts}
+              />
             </div>
-          ) : (
-            groupedTasks.map(({ dateKey, date, tasks: dateTasks }) => {
-              const dateLabel = getDateLabel(date);
-              const isExpanded = expandedDates.has(dateLabel);
-              const completedCount = dateTasks.filter(t => t.completed).length;
 
-              return (
-                <Collapsible
-                  key={dateKey}
-                  open={isExpanded}
-                  onOpenChange={() => toggleDateExpansion(dateLabel)}
-                  className="bg-card rounded-2xl shadow-sm border border-border/50 overflow-hidden"
-                >
-                  <CollapsibleTrigger className="w-full px-4 py-3 flex items-center justify-between hover:bg-accent/50 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <div className="text-left">
-                        <h3 className="font-semibold text-sm">{getDateDisplay(date)}</h3>
-                        <p className="text-xs text-muted-foreground">
-                          {completedCount}/{dateTasks.length} completed
-                        </p>
-                      </div>
-                    </div>
-                    <ChevronDown
-                      className={`h-5 w-5 text-muted-foreground transition-transform duration-200 ${
-                        isExpanded ? "rotate-180" : ""
-                      }`}
-                    />
-                  </CollapsibleTrigger>
-                  
-                  <CollapsibleContent>
-                    <div className="px-2 pb-2 space-y-2">
-                      {dateTasks.map((task) => (
-                        <TaskItem
-                          key={task.id}
-                          task={task}
-                          onToggle={toggleTask}
-                          onDelete={deleteTask}
+            {/* Task List Grouped by Date */}
+            <div className="space-y-4 animate-fade-in">
+              {groupedTasks.length === 0 ? (
+                <div className="text-center py-16">
+                  <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-primary/10 flex items-center justify-center animate-pulse-glow">
+                    <Sparkles className="h-12 w-12 text-primary" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">No tasks yet</h3>
+                  <p className="text-muted-foreground">
+                    Add your first task to get started!
+                  </p>
+                </div>
+              ) : (
+                groupedTasks.map(({ dateKey, date, tasks: dateTasks }) => {
+                  const dateLabel = getDateLabel(date);
+                  const isExpanded = expandedDates.has(dateLabel);
+                  const completedCount = dateTasks.filter(t => t.completed).length;
+
+                  return (
+                    <Collapsible
+                      key={dateKey}
+                      open={isExpanded}
+                      onOpenChange={() => toggleDateExpansion(dateLabel)}
+                      className="bg-card rounded-2xl shadow-sm border border-border/50 overflow-hidden"
+                    >
+                      <CollapsibleTrigger className="w-full px-4 py-3 flex items-center justify-between hover:bg-accent/50 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <Calendar className="h-4 w-4 text-muted-foreground" />
+                          <div className="text-left">
+                            <h3 className="font-semibold text-sm">{getDateDisplay(date)}</h3>
+                            <p className="text-xs text-muted-foreground">
+                              {completedCount}/{dateTasks.length} completed
+                            </p>
+                          </div>
+                        </div>
+                        <ChevronDown
+                          className={`h-5 w-5 text-muted-foreground transition-transform duration-200 ${
+                            isExpanded ? "rotate-180" : ""
+                          }`}
                         />
-                      ))}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-              );
-            })
-          )}
-        </div>
+                      </CollapsibleTrigger>
+                      
+                      <CollapsibleContent>
+                        <div className="px-2 pb-2 space-y-2">
+                          {dateTasks.map((task) => (
+                            <TaskItem
+                              key={task.id}
+                              task={task}
+                              onToggle={toggleTask}
+                              onDelete={deleteTask}
+                              onSetReminder={handleSetReminder}
+                            />
+                          ))}
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  );
+                })
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="reminders" className="space-y-4 pt-6">
+            <RemindersSection
+              tasks={tasks}
+              onDeleteReminder={deleteReminder}
+              onEditReminder={handleSetReminder}
+            />
+          </TabsContent>
+        </Tabs>
       </div>
+
+      {/* Reminder Dialog */}
+      {selectedTask && (
+        <SetReminderDialog
+          task={selectedTask}
+          open={isReminderDialogOpen}
+          onClose={() => {
+            setIsReminderDialogOpen(false);
+            setSelectedTask(null);
+          }}
+          onSetReminder={setReminder}
+        />
+      )}
     </div>
   );
 };

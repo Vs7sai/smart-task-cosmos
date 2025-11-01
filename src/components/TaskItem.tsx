@@ -1,6 +1,7 @@
 import { Task } from "@/types/task";
-import { Check, Trash2 } from "lucide-react";
+import { Trash2, Bell } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
 
@@ -8,6 +9,7 @@ interface TaskItemProps {
   task: Task;
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
+  onSetReminder: (task: Task) => void;
 }
 
 const categoryColors = {
@@ -23,7 +25,7 @@ const priorityIndicators = {
   low: "border-l-4 border-l-muted-foreground",
 };
 
-export const TaskItem = ({ task, onToggle, onDelete }: TaskItemProps) => {
+export const TaskItem = ({ task, onToggle, onDelete, onSetReminder }: TaskItemProps) => {
   const handleToggle = async () => {
     await Haptics.impact({ style: ImpactStyle.Light });
     onToggle(task.id);
@@ -77,13 +79,29 @@ export const TaskItem = ({ task, onToggle, onDelete }: TaskItemProps) => {
           </div>
         </div>
 
-        <button
-          onClick={handleDelete}
-          className="opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-destructive/10 rounded-lg"
-          aria-label="Delete task"
-        >
-          <Trash2 className="h-4 w-4 text-destructive" />
-        </button>
+        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-primary hover:bg-primary/10"
+            onClick={(e) => {
+              e.stopPropagation();
+              onSetReminder(task);
+            }}
+            aria-label="Set reminder"
+          >
+            <Bell className={cn("h-4 w-4", task.reminder?.enabled && "fill-current")} />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-destructive hover:bg-destructive/10"
+            onClick={handleDelete}
+            aria-label="Delete task"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
     </div>
   );

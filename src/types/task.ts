@@ -6,6 +6,10 @@ export interface Task {
   priority: 'low' | 'medium' | 'high';
   createdAt: Date;
   completedAt?: Date;
+  reminder?: {
+    time: Date;
+    enabled: boolean;
+  };
 }
 
 export interface TaskStats {
