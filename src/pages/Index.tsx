@@ -61,6 +61,8 @@ const Index = () => {
       createdAt: new Date(),
     };
     
+    console.log("Adding task with reminder:", newTask.reminder);
+    
     setTasks((prev) => [newTask, ...prev]);
     
     toast({

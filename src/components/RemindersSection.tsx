@@ -14,6 +14,10 @@ interface RemindersSectionProps {
 
 export const RemindersSection = ({ tasks, onDeleteReminder, onEditReminder }: RemindersSectionProps) => {
   const tasksWithReminders = tasks.filter(task => task.reminder?.enabled);
+  
+  console.log("Total tasks:", tasks.length);
+  console.log("Tasks with reminders:", tasksWithReminders.length);
+  console.log("Reminders:", tasksWithReminders.map(t => ({ title: t.title, reminder: t.reminder })));
 
   const getTimeLabel = (date: Date) => {
     const reminderDate = new Date(date);
