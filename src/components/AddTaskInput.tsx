@@ -194,7 +194,14 @@ export const AddTaskInput = ({ onAdd }: AddTaskInputProps) => {
                         </Button>
                       )}
                       <Button 
-                        onClick={() => setIsReminderOpen(false)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (title.trim()) {
+                            // Auto-submit the form when saving reminder
+                            handleSubmit(e as any);
+                          }
+                          setIsReminderOpen(false);
+                        }}
                         disabled={!reminderTime}
                         className="w-full"
                       >

@@ -6,8 +6,11 @@ import { ProgressWheel } from "@/components/ProgressWheel";
 import { CategoryFilter } from "@/components/CategoryFilter";
 import { RemindersSection } from "@/components/RemindersSection";
 import { SetReminderDialog } from "@/components/SetReminderDialog";
-import { Sparkles, Trophy, ChevronDown, Calendar, Bell } from "lucide-react";
+import { AlarmSettingsDialog } from "@/components/AlarmSettingsDialog";
+import { Button } from "@/components/ui/button";
+import { Sparkles, Trophy, ChevronDown, Calendar, Bell, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useReminderAlarm } from "@/hooks/useReminderAlarm";
 import { Preferences } from "@capacitor/preferences";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -22,7 +25,11 @@ const Index = () => {
   const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set(["today"]));
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isReminderDialogOpen, setIsReminderDialogOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const { toast } = useToast();
+  
+  // Enable reminder alarms
+  useReminderAlarm(tasks);
 
   // Load tasks from storage
   useEffect(() => {
@@ -279,15 +286,26 @@ const Index = () => {
             <p className="text-white/90 text-sm">Your ultimate productivity companion</p>
           </div>
           
-          {completedToday > 0 && (
-            <div className="bg-white/20 backdrop-blur-sm rounded-2xl px-4 py-2 flex items-center gap-2 animate-scale-in">
-              <Trophy className="h-5 w-5" />
-              <div className="text-right">
-                <div className="text-2xl font-bold leading-none">{completedToday}</div>
-                <div className="text-xs text-white/80">today</div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsSettingsOpen(true)}
+              className="text-white hover:bg-white/20 rounded-xl"
+            >
+              <Settings className="h-5 w-5" />
+            </Button>
+            
+            {completedToday > 0 && (
+              <div className="bg-white/20 backdrop-blur-sm rounded-2xl px-4 py-2 flex items-center gap-2 animate-scale-in">
+                <Trophy className="h-5 w-5" />
+                <div className="text-right">
+                  <div className="text-2xl font-bold leading-none">{completedToday}</div>
+                  <div className="text-xs text-white/80">today</div>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Progress Wheel */}
@@ -410,6 +428,12 @@ const Index = () => {
           onSetReminder={setReminder}
         />
       )}
+
+      {/* Settings Dialog */}
+      <AlarmSettingsDialog
+        open={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+      />
     </div>
   );
 };
