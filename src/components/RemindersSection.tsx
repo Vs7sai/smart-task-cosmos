@@ -63,10 +63,15 @@ export const RemindersSection = ({ tasks, onDeleteReminder, onEditReminder }: Re
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 space-y-2">
                 <div className="flex items-start gap-2">
-                  <Bell className={cn(
-                    "h-5 w-5 mt-0.5 flex-shrink-0",
-                    overdue ? "text-destructive" : "text-primary"
-                  )} />
+                  <div className={cn(
+                    "p-2 rounded-lg flex-shrink-0",
+                    overdue ? "bg-destructive/10" : "bg-primary/10"
+                  )}>
+                    <Bell className={cn(
+                      "h-5 w-5",
+                      overdue ? "text-destructive" : "text-primary"
+                    )} />
+                  </div>
                   <div className="flex-1">
                     <p className={cn(
                       "font-medium",
@@ -102,17 +107,19 @@ export const RemindersSection = ({ tasks, onDeleteReminder, onEditReminder }: Re
                 </div>
               </div>
               
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDeleteReminder(task.id);
-                }}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              {(!task.completed || task.reminder?.recurring === 'daily') && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteReminder(task.id);
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
             </div>
           </Card>
         );
