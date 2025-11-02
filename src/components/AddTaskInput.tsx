@@ -151,16 +151,6 @@ export const AddTaskInput = ({ onAdd }: AddTaskInputProps) => {
                   <div className="space-y-4">
                     <h4 className="font-medium">Set Reminder</h4>
                     <div className="space-y-2">
-                      <Label htmlFor="reminder-time">Time</Label>
-                      <Input
-                        id="reminder-time"
-                        type="datetime-local"
-                        value={reminderTime}
-                        onChange={(e) => setReminderTime(e.target.value)}
-                        min={new Date().toISOString().slice(0, 16)}
-                      />
-                    </div>
-                    <div className="space-y-2">
                       <Label htmlFor="reminder-recurring">Repeat</Label>
                       <Select value={reminderRecurring} onValueChange={(value) => setReminderRecurring(value as 'none' | 'daily')}>
                         <SelectTrigger id="reminder-recurring">
@@ -171,6 +161,23 @@ export const AddTaskInput = ({ onAdd }: AddTaskInputProps) => {
                           <SelectItem value="daily">Every day</SelectItem>
                         </SelectContent>
                       </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="reminder-time">
+                        {reminderRecurring === 'daily' ? 'Starts from' : 'Time'}
+                      </Label>
+                      <Input
+                        id="reminder-time"
+                        type="datetime-local"
+                        value={reminderTime}
+                        onChange={(e) => setReminderTime(e.target.value)}
+                        min={new Date().toISOString().slice(0, 16)}
+                      />
+                      {reminderRecurring === 'daily' && reminderTime && (
+                        <p className="text-xs text-muted-foreground">
+                          This task will appear every day at {new Date(reminderTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                        </p>
+                      )}
                     </div>
                     <div className="space-y-3">
                       {reminderTime && (

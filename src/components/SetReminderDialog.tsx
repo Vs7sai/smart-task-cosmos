@@ -47,17 +47,6 @@ export const SetReminderDialog = ({ task, open, onClose, onSetReminder }: SetRem
             <Label htmlFor="task-title">Task</Label>
             <p className="text-sm text-muted-foreground">{task.title}</p>
           </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="reminder-time">Reminder Time</Label>
-            <Input
-              id="reminder-time"
-              type="datetime-local"
-              value={reminderDate}
-              onChange={(e) => setReminderDate(e.target.value)}
-              min={new Date().toISOString().slice(0, 16)}
-            />
-          </div>
 
           <div className="space-y-2">
             <Label htmlFor="recurring">Repeat</Label>
@@ -70,6 +59,24 @@ export const SetReminderDialog = ({ task, open, onClose, onSetReminder }: SetRem
                 <SelectItem value="daily">Every day</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="reminder-time">
+              {recurring === 'daily' ? 'Starts from' : 'Reminder Time'}
+            </Label>
+            <Input
+              id="reminder-time"
+              type="datetime-local"
+              value={reminderDate}
+              onChange={(e) => setReminderDate(e.target.value)}
+              min={new Date().toISOString().slice(0, 16)}
+            />
+            {recurring === 'daily' && reminderDate && (
+              <p className="text-xs text-muted-foreground">
+                This task will appear every day at {new Date(reminderDate).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+              </p>
+            )}
           </div>
         </div>
 

@@ -53,7 +53,8 @@ export const RemindersSection = ({ tasks, onDeleteReminder, onEditReminder }: Re
     <div className="space-y-3">
       {tasksWithReminders.map(task => {
         const reminderTime = new Date(task.reminder!.time);
-        const overdue = isOverdue(reminderTime);
+        const isRecurringDaily = task.reminder?.recurring === 'daily';
+        const overdue = !isRecurringDaily && isOverdue(reminderTime);
 
         return (
           <Card
@@ -87,43 +88,50 @@ export const RemindersSection = ({ tasks, onDeleteReminder, onEditReminder }: Re
                       <Badge variant="outline" className={categoryColors[task.category]}>
                         {task.category}
                       </Badge>
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Calendar className="h-3 w-3" />
-                        <span>{getTimeLabel(reminderTime)}</span>
-                      </div>
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Clock className="h-3 w-3" />
-                        <span>{format(reminderTime, "h:mm a")}</span>
-                      </div>
-                      {task.reminder?.recurring === 'daily' && (
-                        <Badge variant="outline" className="text-xs">
-                          <Repeat className="h-3 w-3 mr-1" />
-                          Daily
-                        </Badge>
-                      )}
-                      {overdue && (
-                        <Badge variant="destructive" className="text-xs">
-                          Overdue
-                        </Badge>
+                      {isRecurringDaily ? (
+                        <>
+                          <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/20">
+                            <Repeat className="h-3 w-3 mr-1" />
+                            Every day at {format(reminderTime, "h:mm a")}
+                          </Badge>
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Calendar className="h-3 w-3" />
+                            <span>Started {format(reminderTime, "MMM d")}</span>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Calendar className="h-3 w-3" />
+                            <span>{getTimeLabel(reminderTime)}</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Clock className="h-3 w-3" />
+                            <span>{format(reminderTime, "h:mm a")}</span>
+                          </div>
+                          {overdue && (
+                            <Badge variant="destructive" className="text-xs">
+                              Overdue
+                            </Badge>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>
                 </div>
               </div>
-              
-              {(!task.completed || task.reminder?.recurring === 'daily') && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDeleteReminder(task.id);
-                  }}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              )}
+
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteReminder(task.id);
+                }}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
             </div>
           </Card>
         );

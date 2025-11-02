@@ -151,18 +151,69 @@ const Index = () => {
     (task) => selectedCategory === "all" || task.category === selectedCategory
   );
 
+  // Helper function to get tasks for a specific date including recurring tasks
+  const getTasksForDate = (allTasks: Task[], targetDate: Date) => {
+    const targetDayStart = startOfDay(targetDate);
+
+    return allTasks.filter((task) => {
+      const taskDayStart = startOfDay(task.createdAt);
+
+      // If task was created on this date, include it
+      if (taskDayStart.getTime() === targetDayStart.getTime()) {
+        return true;
+      }
+
+      // If task has daily recurring reminder and target date is after the reminder start date
+      if (task.reminder?.recurring === 'daily' && task.reminder.enabled) {
+        const reminderStart = startOfDay(task.reminder.time);
+        return targetDayStart.getTime() >= reminderStart.getTime();
+      }
+
+      return false;
+    });
+  };
+
   // Group tasks by date
   const groupTasksByDate = (tasks: Task[]) => {
     const groups: Record<string, Task[]> = {};
-    
+    const today = new Date();
+    const daysToShow = 7; // Show today and past 6 days
+
+    // First, collect all unique dates from tasks
+    const allDates = new Set<number>();
+
     tasks.forEach((task) => {
       const taskDate = startOfDay(task.createdAt);
-      const dateKey = taskDate.getTime().toString();
-      
-      if (!groups[dateKey]) {
-        groups[dateKey] = [];
+      allDates.add(taskDate.getTime());
+
+      // For recurring tasks, add dates from reminder start to today
+      if (task.reminder?.recurring === 'daily' && task.reminder.enabled) {
+        const reminderStart = startOfDay(task.reminder.time);
+        const currentDate = new Date(reminderStart);
+
+        while (currentDate.getTime() <= today.getTime()) {
+          allDates.add(startOfDay(currentDate).getTime());
+          currentDate.setDate(currentDate.getDate() + 1);
+        }
       }
-      groups[dateKey].push(task);
+    });
+
+    // Also add recent dates even if no tasks (to show recurring tasks)
+    for (let i = 0; i < daysToShow; i++) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      allDates.add(startOfDay(date).getTime());
+    }
+
+    // Build groups with tasks for each date
+    allDates.forEach((dateTime) => {
+      const date = new Date(dateTime);
+      const dateKey = dateTime.toString();
+      const tasksForDate = getTasksForDate(tasks, date);
+
+      if (tasksForDate.length > 0) {
+        groups[dateKey] = tasksForDate;
+      }
     });
 
     // Sort groups by date (newest first)
