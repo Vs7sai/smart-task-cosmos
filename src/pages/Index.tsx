@@ -156,20 +156,22 @@ const Index = () => {
     const targetDayStart = startOfDay(targetDate);
 
     return allTasks.filter((task) => {
-      const taskDayStart = startOfDay(task.createdAt);
-
-      // If task was created on this date, include it
-      if (taskDayStart.getTime() === targetDayStart.getTime()) {
-        return true;
-      }
-
-      // If task has daily recurring reminder and target date is after the reminder start date
-      if (task.reminder?.recurring === 'daily' && task.reminder.enabled) {
+      // If task has a reminder
+      if (task.reminder?.enabled) {
         const reminderStart = startOfDay(task.reminder.time);
-        return targetDayStart.getTime() >= reminderStart.getTime();
+        
+        // For daily recurring reminders, show on all dates from reminder start onwards
+        if (task.reminder.recurring === 'daily') {
+          return targetDayStart.getTime() >= reminderStart.getTime();
+        }
+        
+        // For one-time reminders, only show on the reminder date
+        return targetDayStart.getTime() === reminderStart.getTime();
       }
 
-      return false;
+      // For tasks without reminders, show on creation date
+      const taskDayStart = startOfDay(task.createdAt);
+      return taskDayStart.getTime() === targetDayStart.getTime();
     });
   };
 
