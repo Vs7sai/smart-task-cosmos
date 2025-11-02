@@ -22,6 +22,7 @@ export const AddTaskInput = ({ onAdd }: AddTaskInputProps) => {
   const [lastPriority, setLastPriority] = useState<Task["priority"]>("low");
   const [reminderTime, setReminderTime] = useState("");
   const [reminderRecurring, setReminderRecurring] = useState<'none' | 'daily'>('none');
+  const [isReminderOpen, setIsReminderOpen] = useState(false);
 
   const detectCategory = (text: string): Task["category"] => {
     const lowerText = text.toLowerCase();
@@ -56,6 +57,8 @@ export const AddTaskInput = ({ onAdd }: AddTaskInputProps) => {
 
     const category = selectedCategory || detectCategory(title);
     const priority = selectedPriority || detectPriority(title);
+
+    console.log("AddTaskInput submit - reminder:", { time: reminderTime, recurring: reminderRecurring });
 
     onAdd({
       title: title.trim(),
@@ -130,7 +133,7 @@ export const AddTaskInput = ({ onAdd }: AddTaskInputProps) => {
           />
           {isExpanded && (
             <>
-              <Popover>
+              <Popover open={isReminderOpen} onOpenChange={setIsReminderOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     type="button"
@@ -169,19 +172,28 @@ export const AddTaskInput = ({ onAdd }: AddTaskInputProps) => {
                         </SelectContent>
                       </Select>
                     </div>
-                    {reminderTime && (
+                    <div className="space-y-3">
+                      {reminderTime && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => {
+                            setReminderTime("");
+                            setReminderRecurring('none');
+                          }}
+                          className="w-full"
+                        >
+                          Clear Reminder
+                        </Button>
+                      )}
                       <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => {
-                          setReminderTime("");
-                          setReminderRecurring('none');
-                        }}
+                        onClick={() => setIsReminderOpen(false)}
+                        disabled={!reminderTime}
                         className="w-full"
                       >
-                        Clear Reminder
+                        Save Reminder
                       </Button>
-                    )}
+                    </div>
                   </div>
                 </PopoverContent>
               </Popover>
