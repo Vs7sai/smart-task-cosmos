@@ -56,7 +56,7 @@ export const TaskItem = ({ task, onToggle, onDelete, onSetReminder }: TaskItemPr
             )}
           />
         </div>
-        
+
         <div className="flex-1 min-w-0">
           <p
             className={cn(
@@ -66,8 +66,8 @@ export const TaskItem = ({ task, onToggle, onDelete, onSetReminder }: TaskItemPr
           >
             {task.title}
           </p>
-          
-          <div className="flex items-center gap-2 mt-2">
+
+          <div className="flex items-center justify-between gap-2 mt-2 flex-wrap">
             <span
               className={cn(
                 "text-xs px-2 py-1 rounded-full border font-medium",
@@ -76,31 +76,31 @@ export const TaskItem = ({ task, onToggle, onDelete, onSetReminder }: TaskItemPr
             >
               {task.category}
             </span>
-          </div>
-        </div>
 
-        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-primary hover:bg-primary/10"
-            onClick={(e) => {
-              e.stopPropagation();
-              onSetReminder(task);
-            }}
-            aria-label="Set reminder"
-          >
-            <Bell className={cn("h-4 w-4", task.reminder?.enabled && "fill-current")} />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-destructive hover:bg-destructive/10"
-            onClick={handleDelete}
-            aria-label="Delete task"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+            <div className="flex gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-primary hover:bg-primary/10"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSetReminder(task);
+                }}
+                aria-label="Set reminder"
+              >
+                <Bell className={cn("h-4 w-4", task.reminder?.enabled && "fill-current")} />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                onClick={handleDelete}
+                aria-label="Delete task"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
