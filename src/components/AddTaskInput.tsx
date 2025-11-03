@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 
 interface AddTaskInputProps {
   onAdd: (task: Omit<Task, "id" | "createdAt">) => void;
@@ -23,6 +24,19 @@ export const AddTaskInput = ({ onAdd }: AddTaskInputProps) => {
   const [reminderTime, setReminderTime] = useState("");
   const [reminderRecurring, setReminderRecurring] = useState<'none' | 'daily'>('none');
   const [isReminderOpen, setIsReminderOpen] = useState(false);
+  const { toast } = useToast();
+
+  const handleReminderClick = () => {
+    if (!title.trim()) {
+      toast({
+        title: "Please type a task first! ✍️",
+        description: "You need to enter a task before setting a reminder",
+        variant: "destructive"
+      });
+      return;
+    }
+    setIsReminderOpen(true);
+  };
 
   const detectCategory = (text: string): Task["category"] => {
     const lowerText = text.toLowerCase();
@@ -131,12 +145,19 @@ export const AddTaskInput = ({ onAdd }: AddTaskInputProps) => {
             placeholder="Add a new task..."
             className="flex-1 border-0 bg-muted/50 focus-visible:ring-2 focus-visible:ring-primary rounded-xl text-base"
           />
-          <Popover open={isReminderOpen} onOpenChange={setIsReminderOpen}>
+          <Popover open={isReminderOpen} onOpenChange={(open) => {
+            if (open && !title.trim()) {
+              handleReminderClick();
+            } else {
+              setIsReminderOpen(open);
+            }
+          }}>
             <PopoverTrigger asChild>
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
+                onClick={handleReminderClick}
                 className={cn(
                   "rounded-xl transition-colors",
                   reminderTime ? "text-primary hover:bg-primary/10" : "hover:bg-muted"
