@@ -131,96 +131,94 @@ export const AddTaskInput = ({ onAdd }: AddTaskInputProps) => {
             placeholder="Add a new task..."
             className="flex-1 border-0 bg-muted/50 focus-visible:ring-2 focus-visible:ring-primary rounded-xl text-base"
           />
-          {isExpanded && (
-            <>
-              <Popover open={isReminderOpen} onOpenChange={setIsReminderOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className={cn(
-                      "rounded-xl transition-colors",
-                      reminderTime ? "text-primary hover:bg-primary/10" : "hover:bg-muted"
-                    )}
-                  >
-                    <Bell className={cn("h-5 w-5", reminderTime && "fill-current")} />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-80" align="end">
-                  <div className="space-y-4">
-                    <h4 className="font-medium">Set Reminder</h4>
-                    <div className="space-y-2">
-                      <Label htmlFor="reminder-recurring">Repeat</Label>
-                      <Select value={reminderRecurring} onValueChange={(value) => setReminderRecurring(value as 'none' | 'daily')}>
-                        <SelectTrigger id="reminder-recurring">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">Don't repeat</SelectItem>
-                          <SelectItem value="daily">Every day</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="reminder-time">
-                        {reminderRecurring === 'daily' ? 'Starts from' : 'Time'}
-                      </Label>
-                      <Input
-                        id="reminder-time"
-                        type="datetime-local"
-                        value={reminderTime}
-                        onChange={(e) => setReminderTime(e.target.value)}
-                        min={new Date().toISOString().slice(0, 16)}
-                      />
-                      {reminderRecurring === 'daily' && reminderTime && (
-                        <p className="text-xs text-muted-foreground">
-                          This task will appear every day at {new Date(reminderTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
-                        </p>
-                      )}
-                    </div>
-                    <div className="space-y-3">
-                      {reminderTime && (
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => {
-                            setReminderTime("");
-                            setReminderRecurring('none');
-                          }}
-                          className="w-full"
-                        >
-                          Clear Reminder
-                        </Button>
-                      )}
-                      <Button 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          if (title.trim()) {
-                            // Auto-submit the form when saving reminder
-                            handleSubmit(e as any);
-                          }
-                          setIsReminderOpen(false);
-                        }}
-                        disabled={!reminderTime}
-                        className="w-full"
-                      >
-                        Save Reminder
-                      </Button>
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
+          <Popover open={isReminderOpen} onOpenChange={setIsReminderOpen}>
+            <PopoverTrigger asChild>
               <Button
                 type="button"
-                onClick={handleClose}
                 variant="ghost"
                 size="icon"
-                className="rounded-xl hover:bg-destructive/10 hover:text-destructive transition-colors"
+                className={cn(
+                  "rounded-xl transition-colors",
+                  reminderTime ? "text-primary hover:bg-primary/10" : "hover:bg-muted"
+                )}
               >
-                <X className="h-5 w-5" />
+                <Bell className={cn("h-5 w-5", reminderTime && "fill-current")} />
               </Button>
-            </>
+            </PopoverTrigger>
+            <PopoverContent className="w-80" align="end">
+              <div className="space-y-4">
+                <h4 className="font-medium">Set Reminder</h4>
+                <div className="space-y-2">
+                  <Label htmlFor="reminder-recurring">Repeat</Label>
+                  <Select value={reminderRecurring} onValueChange={(value) => setReminderRecurring(value as 'none' | 'daily')}>
+                    <SelectTrigger id="reminder-recurring">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Don't repeat</SelectItem>
+                      <SelectItem value="daily">Every day</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="reminder-time">
+                    {reminderRecurring === 'daily' ? 'Starts from' : 'Time'}
+                  </Label>
+                  <Input
+                    id="reminder-time"
+                    type="datetime-local"
+                    value={reminderTime}
+                    onChange={(e) => setReminderTime(e.target.value)}
+                    min={new Date().toISOString().slice(0, 16)}
+                  />
+                  {reminderRecurring === 'daily' && reminderTime && (
+                    <p className="text-xs text-muted-foreground">
+                      This task will appear every day at {new Date(reminderTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-3">
+                  {reminderTime && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => {
+                        setReminderTime("");
+                        setReminderRecurring('none');
+                      }}
+                      className="w-full"
+                    >
+                      Clear Reminder
+                    </Button>
+                  )}
+                  <Button 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (title.trim()) {
+                        // Auto-submit the form when saving reminder
+                        handleSubmit(e as any);
+                      }
+                      setIsReminderOpen(false);
+                    }}
+                    disabled={!reminderTime}
+                    className="w-full"
+                  >
+                    Save Reminder
+                  </Button>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+          {isExpanded && (
+            <Button
+              type="button"
+              onClick={handleClose}
+              variant="ghost"
+              size="icon"
+              className="rounded-xl hover:bg-destructive/10 hover:text-destructive transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </Button>
           )}
           <Button
             type="submit"
