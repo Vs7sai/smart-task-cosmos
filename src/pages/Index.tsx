@@ -154,9 +154,26 @@ const Index = () => {
     setReminder(taskId, null);
   };
 
-  const filteredTasks = tasks.filter(
-    (task) => selectedCategory === "all" || task.category === selectedCategory
-  );
+  // Helper to check if a daily recurring task should show as completed today
+  const isTaskCompletedToday = (task: Task): boolean => {
+    if (!task.completed || !task.completedAt) return false;
+    
+    // For daily recurring tasks, only show as completed if completed today
+    if (task.reminder?.recurring === 'daily' && task.reminder.enabled) {
+      return isToday(task.completedAt);
+    }
+    
+    // For non-recurring tasks, use the actual completed status
+    return task.completed;
+  };
+
+  // Apply daily recurring task logic to filtered tasks
+  const filteredTasks = tasks
+    .filter((task) => selectedCategory === "all" || task.category === selectedCategory)
+    .map((task) => ({
+      ...task,
+      completed: isTaskCompletedToday(task),
+    }));
 
   // Helper function to get tasks for a specific date including recurring tasks
   const getTasksForDate = (allTasks: Task[], targetDate: Date) => {

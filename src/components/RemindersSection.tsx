@@ -13,7 +13,25 @@ interface RemindersSectionProps {
 }
 
 export const RemindersSection = ({ tasks, onDeleteReminder, onEditReminder }: RemindersSectionProps) => {
-  const tasksWithReminders = tasks.filter(task => task.reminder?.enabled);
+  // Helper to check if a daily recurring task should show as completed today
+  const isTaskCompletedToday = (task: Task): boolean => {
+    if (!task.completed || !task.completedAt) return false;
+    
+    // For daily recurring tasks, only show as completed if completed today
+    if (task.reminder?.recurring === 'daily' && task.reminder.enabled) {
+      return isToday(task.completedAt);
+    }
+    
+    // For non-recurring tasks, use the actual completed status
+    return task.completed;
+  };
+
+  const tasksWithReminders = tasks
+    .filter(task => task.reminder?.enabled)
+    .map(task => ({
+      ...task,
+      completed: isTaskCompletedToday(task),
+    }));
   
   console.log("Total tasks:", tasks.length);
   console.log("Tasks with reminders:", tasksWithReminders.length);
