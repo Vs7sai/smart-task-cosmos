@@ -4,6 +4,7 @@ import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Volume2 } from "lucide-react";
 import { AlarmSound, useAlarmSettings } from "@/hooks/useAlarmSettings";
 import { Button } from "./ui/button";
+import { playGeneratedSound } from "@/utils/audioGenerator";
 
 interface AlarmSettingsDialogProps {
   open: boolean;
@@ -22,10 +23,7 @@ export const AlarmSettingsDialog = ({ open, onClose }: AlarmSettingsDialogProps)
 
   const playTestSound = async (sound: AlarmSound) => {
     try {
-      const audio = new Audio(`/sounds/${sound}.mp3`);
-      audio.volume = 0.5;
-      audio.load();
-      await audio.play();
+      await playGeneratedSound(sound, 0.5);
       console.log("Test sound played successfully");
     } catch (err) {
       console.error("Test sound failed:", err);

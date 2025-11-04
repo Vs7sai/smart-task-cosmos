@@ -3,6 +3,7 @@ import { Task } from "@/types/task";
 import { useAlarmSettings } from "./useAlarmSettings";
 import { useToast } from "./use-toast";
 import { format } from "date-fns";
+import { playGeneratedSound } from "@/utils/audioGenerator";
 
 export const useReminderAlarm = (tasks: Task[]) => {
   const { selectedSound } = useAlarmSettings();
@@ -68,11 +69,7 @@ export const useReminderAlarm = (tasks: Task[]) => {
           
           const playAlarm = async () => {
             try {
-              audioRef.current = new Audio(`/sounds/${selectedSound}.mp3`);
-              audioRef.current.volume = 0.7;
-              audioRef.current.load(); // Preload the audio
-              
-              await audioRef.current.play();
+              await playGeneratedSound(selectedSound, 0.7);
               console.log("Alarm sound played successfully");
             } catch (err) {
               console.error("Audio play failed:", err);
