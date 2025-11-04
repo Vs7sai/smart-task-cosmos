@@ -20,10 +20,16 @@ const alarmSounds: { value: AlarmSound; label: string; description: string }[] =
 export const AlarmSettingsDialog = ({ open, onClose }: AlarmSettingsDialogProps) => {
   const { selectedSound, updateSound } = useAlarmSettings();
 
-  const playTestSound = (sound: AlarmSound) => {
-    const audio = new Audio(`/sounds/${sound}.mp3`);
-    audio.volume = 0.5;
-    audio.play().catch(err => console.log("Audio play failed:", err));
+  const playTestSound = async (sound: AlarmSound) => {
+    try {
+      const audio = new Audio(`/sounds/${sound}.mp3`);
+      audio.volume = 0.5;
+      audio.load();
+      await audio.play();
+      console.log("Test sound played successfully");
+    } catch (err) {
+      console.error("Test sound failed:", err);
+    }
   };
 
   return (

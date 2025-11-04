@@ -9,6 +9,38 @@ export const useReminderAlarm = (tasks: Task[]) => {
   const { toast } = useToast();
   const checkedReminders = useRef<Set<string>>(new Set());
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioInitialized = useRef(false);
+
+  // Initialize audio on first user interaction
+  useEffect(() => {
+    const initAudio = () => {
+      if (!audioInitialized.current) {
+        // Create and play silent audio to unlock audio context
+        const silentAudio = new Audio();
+        silentAudio.src = "data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAACAAABhADAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dX//////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAAAYTs90hvAAAAAAAAAAAAAAAAAAAA//MUZAAAAAGkAAAAAAAAA0gAAAAATEFN//MUZAMAAAGkAAAAAAAAA0gAAAAARTMu//MUZAYAAAGkAAAAAAAAA0gAAAAAOTku//MUZAkAAAGkAAAAAAAAA0gAAAAANVVV";
+        silentAudio.volume = 0.01;
+        silentAudio.play()
+          .then(() => {
+            audioInitialized.current = true;
+            console.log("Audio context initialized");
+          })
+          .catch(() => {
+            console.log("Audio initialization pending user interaction");
+          });
+      }
+    };
+
+    // Try to initialize on various user interactions
+    window.addEventListener('click', initAudio, { once: true });
+    window.addEventListener('touchstart', initAudio, { once: true });
+    window.addEventListener('keydown', initAudio, { once: true });
+
+    return () => {
+      window.removeEventListener('click', initAudio);
+      window.removeEventListener('touchstart', initAudio);
+      window.removeEventListener('keydown', initAudio);
+    };
+  }, []);
 
   useEffect(() => {
     const checkReminders = () => {
@@ -31,10 +63,29 @@ export const useReminderAlarm = (tasks: Task[]) => {
           // Play alarm sound
           if (audioRef.current) {
             audioRef.current.pause();
+            audioRef.current.currentTime = 0;
           }
-          audioRef.current = new Audio(`/sounds/${selectedSound}.mp3`);
-          audioRef.current.volume = 0.7;
-          audioRef.current.play().catch(err => console.log("Audio play failed:", err));
+          
+          const playAlarm = async () => {
+            try {
+              audioRef.current = new Audio(`/sounds/${selectedSound}.mp3`);
+              audioRef.current.volume = 0.7;
+              audioRef.current.load(); // Preload the audio
+              
+              await audioRef.current.play();
+              console.log("Alarm sound played successfully");
+            } catch (err) {
+              console.error("Audio play failed:", err);
+              // Show visual alert if audio fails
+              toast({
+                title: "🔔 Sound Alert Failed",
+                description: "Please enable sound permissions",
+                duration: 3000,
+              });
+            }
+          };
+          
+          playAlarm();
 
           // Show notification toast
           toast({
