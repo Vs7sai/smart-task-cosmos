@@ -60,7 +60,7 @@ export const TaskItem = ({ task, onToggle, onDelete, onSetReminder }: TaskItemPr
         <div className="flex-1 min-w-0">
           <p
             className={cn(
-              "text-base font-medium transition-all duration-300",
+              "text-base font-medium transition-all duration-300 break-words overflow-hidden",
               task.completed && "line-through text-muted-foreground"
             )}
           >
