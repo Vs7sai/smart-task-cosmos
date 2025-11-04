@@ -40,7 +40,7 @@ export const useReminderAlarm = (tasks: Task[]) => {
           toast({
             title: "⏰ Reminder Alert!",
             description: task.title,
-            duration: 4000,
+            duration: 1000,
             className: "bg-gradient-primary text-white border-0",
           });
 

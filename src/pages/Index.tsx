@@ -75,7 +75,7 @@ const Index = () => {
     toast({
       title: "Task added! ✨",
       description: `Added to ${taskData.category}`,
-      duration: 4000,
+      duration: 1000,
     });
   };
 
@@ -91,7 +91,7 @@ const Index = () => {
               title: "Great job! 🎉",
               description: "Task completed",
               className: "bg-gradient-success text-white border-0",
-              duration: 4000,
+              duration: 1000,
             });
           }
           
@@ -111,7 +111,7 @@ const Index = () => {
     toast({
       title: "Task deleted",
       variant: "destructive",
-      duration: 4000,
+      duration: 1000,
     });
   };
 
@@ -134,7 +134,7 @@ const Index = () => {
       toast({
         title: "Reminder set! ⏰",
         description: format(reminderTime, "MMM d 'at' h:mm a") + recurringText,
-        duration: 4000,
+        duration: 1000,
       });
       
       // Request notification permission
@@ -145,7 +145,7 @@ const Index = () => {
       toast({
         title: "Reminder removed",
         description: "Reminder has been deleted",
-        duration: 4000,
+        duration: 1000,
       });
     }
   };

@@ -32,7 +32,7 @@ export const AddTaskInput = ({ onAdd }: AddTaskInputProps) => {
         title: "Please type a task first! ✍️",
         description: "You need to enter a task before setting a reminder",
         variant: "destructive",
-        duration: 4000,
+        duration: 1000,
       });
       return;
     }
